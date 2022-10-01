@@ -4,6 +4,7 @@ import {ContentEditable} from '@lexical/react/LexicalContentEditable';
 import {HistoryPlugin} from '@lexical/react/LexicalHistoryPlugin';
 import {OnChangePlugin} from '@lexical/react/LexicalOnChangePlugin';
 import {ListPlugin} from '@lexical/react/LexicalListPlugin';
+import KoenigBehaviourPlugin from '../plugins/KoenigBehaviourPlugin';
 import MarkdownShortcutPlugin from '../plugins/MarkdownShortcutPlugin';
 import FloatingFormatToolbarPlugin from '../plugins/FloatingFormatToolbar';
 import '../styles/index.css';
@@ -17,6 +18,8 @@ const KoenigEditor = ({
         onChange?.(json);
     }, [onChange]);
 
+    const containerRef = React.useRef(null);
+
     // we need an element reference for the container element that
     // any floating elements in plugins will be rendered inside
     const [floatingAnchorElem, setFloatingAnchorElem] = React.useState(null);
@@ -27,18 +30,19 @@ const KoenigEditor = ({
     };
 
     return (
-        <div className="koenig-lexical">
+        <div className="koenig-lexical" ref={containerRef}>
             <RichTextPlugin
                 contentEditable={
                     <div ref={onRef}>
                         <ContentEditable className="kg-prose" />
                     </div>
                 }
-                placeholder={<div className="kg-absolute kg-text-grey-500 kg-font-serif kg-pointer-events-none kg-top-0 kg-left-0 kg-min-w-full kg-cursor-text kg-text-xl">Begin writing your post...</div>}
+                placeholder={<div className="pointer-events-none absolute top-0 left-0 min-w-full cursor-text font-serif text-xl text-grey-500">Begin writing your post...</div>}
             />
             <OnChangePlugin onChange={_onChange} />
             <HistoryPlugin /> {/* adds undo/redo */}
             <ListPlugin /> {/* adds indent/outdent/remove etc support */}
+            <KoenigBehaviourPlugin containerElem={containerRef} />
             <MarkdownShortcutPlugin transformers={markdownTransformers} />
             {floatingAnchorElem && (<FloatingFormatToolbarPlugin anchorElem={floatingAnchorElem} />)}
         </div>

@@ -4,11 +4,13 @@ import KoenigCardWrapper from '../components/KoenigCardWrapper';
 
 export const INSERT_HORIZONTAL_RULE_COMMAND = createCommand();
 
-function HorizontalRuleComponent() {
+function HorizontalRuleComponent({nodeKey}) {
     return (
-        <KoenigCardWrapper>
-            <hr />
-        </KoenigCardWrapper>
+        <div className="inline-block">
+            <KoenigCardWrapper nodeKey={nodeKey}>
+                <hr className="block h-[1px] border-0 border-t border-grey-300" />
+            </KoenigCardWrapper>
+        </div>
     );
 }
 
@@ -34,7 +36,6 @@ export class HorizontalRuleNode extends DecoratorNode {
 
     createDOM() {
         const div = document.createElement('div');
-        div.style.display = 'contents';
         return div;
     }
 
@@ -42,8 +43,8 @@ export class HorizontalRuleNode extends DecoratorNode {
         return '\n';
     }
 
-    isTopLevel() {
-        return true;
+    isInline() {
+        return false;
     }
 
     updateDOM() {
@@ -51,7 +52,7 @@ export class HorizontalRuleNode extends DecoratorNode {
     }
 
     decorate() {
-        return <HorizontalRuleComponent />;
+        return <HorizontalRuleComponent nodeKey={this.getKey()} />;
     }
 }
 

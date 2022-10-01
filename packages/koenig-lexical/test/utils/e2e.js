@@ -5,7 +5,7 @@ import prettier from 'prettier';
 
 export const E2E_PORT = process.env.E2E_PORT || 3000;
 
-export async function start() {
+export async function startApp() {
     const server = await preview({preview: {port: E2E_PORT}});
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -41,7 +41,7 @@ export async function focusEditor(page, parentSelector = '.koenig-lexical') {
 export async function assertHTML(
     page,
     expectedHtml,
-    {ignoreClasses = false, ignoreInlineStyles = false} = {}
+    {ignoreClasses = true, ignoreInlineStyles = true} = {}
 ) {
     const actualHtml = await page.$eval('div[contenteditable="true"]', e => e.innerHTML);
     const actual = prettifyHTML(actualHtml.replace(/\n/gm, ''), {
@@ -88,4 +88,53 @@ export function html(partials, ...params) {
         }
     }
     return output;
+}
+
+export async function assertSelection(page, expected) {
+    // Assert the selection of the editor matches the snapshot
+    const selection = await page.evaluate(() => {
+        const rootElement = document.querySelector('div[contenteditable="true"]');
+
+        const getPathFromNode = (node) => {
+            const path = [];
+            if (node === rootElement) {
+                return [];
+            }
+            while (node !== null) {
+                const parent = node.parentNode;
+                if (parent === null || node === rootElement) {
+                    break;
+                }
+                path.push(Array.from(parent.childNodes).indexOf(node));
+                node = parent;
+            }
+            return path.reverse();
+        };
+
+        const {anchorNode, anchorOffset, focusNode, focusOffset} =
+        window.getSelection();
+
+        return {
+            anchorOffset,
+            anchorPath: getPathFromNode(anchorNode),
+            focusOffset,
+            focusPath: getPathFromNode(focusNode)
+        };
+    }, expected);
+    expect(selection.anchorPath).toEqual(expected.anchorPath);
+    expect(selection.focusPath).toEqual(expected.focusPath);
+    if (Array.isArray(expected.anchorOffset)) {
+        const [start, end] = expected.anchorOffset;
+        expect(selection.anchorOffset).toBeGreaterThanOrEqual(start);
+        expect(selection.anchorOffset).toBeLessThanOrEqual(end);
+    } else {
+        expect(selection.anchorOffset).toEqual(expected.anchorOffset);
+    }
+    if (Array.isArray(expected.focusOffset)) {
+        const [start, end] = expected.focusOffset;
+        expect(selection.focusOffset).toBeGreaterThanOrEqual(start);
+        expect(selection.focusOffset).toBeLessThanOrEqual(end);
+    } else {
+        expect(selection.focusOffset).toEqual(expected.focusOffset);
+    }
 }
