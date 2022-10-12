@@ -41,21 +41,23 @@ export async function focusEditor(page, parentSelector = '.koenig-lexical') {
 export async function assertHTML(
     page,
     expectedHtml,
-    {ignoreClasses = true, ignoreInlineStyles = true} = {}
+    {ignoreClasses = true, ignoreInlineStyles = true, ignoreInnerSVG = true} = {}
 ) {
     const actualHtml = await page.$eval('div[contenteditable="true"]', e => e.innerHTML);
     const actual = prettifyHTML(actualHtml.replace(/\n/gm, ''), {
         ignoreClasses,
-        ignoreInlineStyles
+        ignoreInlineStyles,
+        ignoreInnerSVG
     });
     const expected = prettifyHTML(expectedHtml.replace(/\n/gm, ''), {
         ignoreClasses,
-        ignoreInlineStyles
+        ignoreInlineStyles,
+        ignoreInnerSVG
     });
     expect(actual).toEqual(expected);
 }
 
-export function prettifyHTML(string, {ignoreClasses, ignoreInlineStyles} = {}) {
+export function prettifyHTML(string, {ignoreClasses, ignoreInlineStyles, ignoreInnerSVG} = {}) {
     let output = string;
 
     if (ignoreClasses) {
@@ -64,6 +66,10 @@ export function prettifyHTML(string, {ignoreClasses, ignoreInlineStyles} = {}) {
 
     if (ignoreInlineStyles) {
         output = output.replace(/\sstyle="([^"]*)"/g, '');
+    }
+    if (ignoreInnerSVG) {
+        // ignore content inside <svg> tags
+        output = output.replace(/<svg[^>]*>.*<\/svg>/g, '<svg></svg>');
     }
 
     return prettier
@@ -137,4 +143,16 @@ export async function assertSelection(page, expected) {
     } else {
         expect(selection.focusOffset).toEqual(expected.focusOffset);
     }
+}
+
+export async function assertPosition(page, selector, expectedBox, {threshold = 0} = {}) {
+    const assertedElem = await page.$(selector);
+    const assertedBox = await assertedElem.boundingBox();
+
+    ['x', 'y'].forEach((boxProperty) => {
+        if (Object.prototype.hasOwnProperty.call(expectedBox, boxProperty)) {
+            expect(assertedBox[boxProperty], boxProperty).toBeGreaterThanOrEqual(expectedBox[boxProperty] - threshold);
+            expect(assertedBox[boxProperty], boxProperty).toBeLessThanOrEqual(expectedBox[boxProperty] + threshold);
+        }
+    });
 }

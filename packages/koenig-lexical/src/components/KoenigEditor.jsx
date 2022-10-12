@@ -6,8 +6,10 @@ import {OnChangePlugin} from '@lexical/react/LexicalOnChangePlugin';
 import {ListPlugin} from '@lexical/react/LexicalListPlugin';
 import KoenigBehaviourPlugin from '../plugins/KoenigBehaviourPlugin';
 import MarkdownShortcutPlugin from '../plugins/MarkdownShortcutPlugin';
-import FloatingFormatToolbarPlugin from '../plugins/FloatingFormatToolbar';
+import PlusCardMenuPlugin from '../plugins/PlusCardMenuPlugin';
+import FloatingFormatToolbarPlugin from '../plugins/FloatingFormatToolbarPlugin';
 import '../styles/index.css';
+import ImagePlugin from '../plugins/ImagePlugin';
 
 const KoenigEditor = ({
     onChange,
@@ -44,7 +46,9 @@ const KoenigEditor = ({
             <ListPlugin /> {/* adds indent/outdent/remove etc support */}
             <KoenigBehaviourPlugin containerElem={containerRef} />
             <MarkdownShortcutPlugin transformers={markdownTransformers} />
+            <PlusCardMenuPlugin />
             {floatingAnchorElem && (<FloatingFormatToolbarPlugin anchorElem={floatingAnchorElem} />)}
+            <ImagePlugin />
         </div>
     );
 };

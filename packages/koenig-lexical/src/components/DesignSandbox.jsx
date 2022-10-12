@@ -1,3 +1,4 @@
+import React, {useState} from 'react';
 import '../styles/index.css';
 import {ReactComponent as BoldIcon} from '../assets/icons/kg-bold.svg';
 import {ReactComponent as ItalicIcon} from '../assets/icons/kg-italic.svg';
@@ -101,15 +102,15 @@ const DesignSandbox = () => {
         return (
             <div className="max-w-fit">
                 <ul className="m-0 flex items-center justify-evenly rounded bg-black px-1 py-0 font-sans text-md font-normal text-white">
-                    <MenuItem label="Format text as bold" Icon={BoldIcon} />
-                    <MenuItem label="Format text as italics" Icon={ItalicIcon} />
-                    <MenuItem label="Toggle heading 1" Icon={HeadingOneIcon} />
-                    <MenuItem label="Toggle heading 2" Icon={HeadingTwoIcon} />
-                    <MenuSeparator />
-                    <MenuItem label="Toggle blockquote" Icon={QuoteIcon} />
-                    <MenuItem label="Insert link" Icon={LinkIcon} />
-                    <MenuSeparator />
-                    <MenuItem label="Save as snippet" Icon={SnippetIcon} />
+                    <ToolbarItem label="Format text as bold" Icon={BoldIcon} />
+                    <ToolbarItem label="Format text as italics" Icon={ItalicIcon} />
+                    <ToolbarItem label="Toggle heading 1" Icon={HeadingOneIcon} />
+                    <ToolbarItem label="Toggle heading 2" Icon={HeadingTwoIcon} />
+                    <ToolbarSeparator />
+                    <ToolbarItem label="Toggle blockquote" Icon={QuoteIcon} />
+                    <ToolbarItem label="Insert link" Icon={LinkIcon} />
+                    <ToolbarSeparator />
+                    <ToolbarItem label="Save as snippet" Icon={SnippetIcon} />
                 </ul>
             </div>  
         );
@@ -119,14 +120,14 @@ const DesignSandbox = () => {
         return (
             <div className="max-w-fit">
                 <ul className="m-0 flex items-center justify-evenly rounded bg-black px-1 py-0 font-sans text-md font-normal text-white">
-                    <MenuItem label="Set image to regular" Icon={ImgRegularIcon} />
-                    <MenuItem label="Set image to wide" Icon={ImgWideIcon} />
-                    <MenuItem label="Set image to full" Icon={ImgFullIcon} />
-                    <MenuSeparator />
-                    <MenuItem label="Insert link" Icon={LinkIcon} />
-                    <MenuItem label="Replace image" Icon={ReplaceIcon} />
-                    <MenuSeparator />
-                    <MenuItem label="Save as snippet" Icon={SnippetIcon} />
+                    <ToolbarItem label="Set image to regular" Icon={ImgRegularIcon} />
+                    <ToolbarItem label="Set image to wide" Icon={ImgWideIcon} />
+                    <ToolbarItem label="Set image to full" Icon={ImgFullIcon} />
+                    <ToolbarSeparator />
+                    <ToolbarItem label="Insert link" Icon={LinkIcon} />
+                    <ToolbarItem label="Replace image" Icon={ReplaceIcon} />
+                    <ToolbarSeparator />
+                    <ToolbarItem label="Save as snippet" Icon={SnippetIcon} />
                 </ul>
             </div>  
         );
@@ -136,15 +137,15 @@ const DesignSandbox = () => {
         return (
             <div className="max-w-fit">
                 <ul className="m-0 flex items-center justify-evenly rounded bg-black px-1 py-0 font-sans text-md font-normal text-white">
-                    <MenuItem label="Add image" Icon={AddIcon} />
-                    <MenuSeparator />
-                    <MenuItem label="Save as snippet" Icon={SnippetIcon} />
+                    <ToolbarItem label="Add image" Icon={AddIcon} />
+                    <ToolbarSeparator />
+                    <ToolbarItem label="Save as snippet" Icon={SnippetIcon} />
                 </ul>
             </div>  
         );
     }
 
-    function MenuItem({label, Icon, ...props}) {
+    function ToolbarItem({label, Icon, ...props}) {
         return (
             <li className="m-0 flex p-0 first:m-0" {...props}>
                 <div
@@ -157,7 +158,7 @@ const DesignSandbox = () => {
         );
     }
     
-    function MenuSeparator() {
+    function ToolbarSeparator() {
         return (
             <li className="m-0 mx-1 h-5 w-px bg-grey-900"></li>
         );
@@ -283,11 +284,53 @@ const DesignSandbox = () => {
     /* ---------------------------------------------------------- */
 
     function ImageCard() {
-        return (
-            <div className="border-2 border-green">
-                <div className='relative'>
+        const [isActive, setActive] = useState(false);
+        const [altText, setAltText] = useState(false);
+
+        const toggleActive = () => {
+            setActive(!isActive);
+        };
+
+        const toggleAltText = (e) => {
+            e.stopPropagation();
+            setAltText(!altText);
+        };
+
+        if (isActive) {
+            return (
+                <div 
+                    className={`border border-transparent ${isActive ? 'shadow-[0_0_0_2px_#30cf43]' : 'hover:shadow-[0_0_0_1px_#30cf43]'}`}
+                    onClick={toggleActive}>
                     <MediaPlaceholder desc="Click to select an image" Icon={ImgPlaceholderIcon} />
+                    <CaptionEditor placeholder="Type caption for image (optional)" />
+                    <button 
+                        className={`absolute bottom-0 right-0 m-3 cursor-pointer rounded border px-1 text-[1.3rem] font-normal leading-7 tracking-wide transition-all duration-100 ${altText ? 'border-green bg-green text-white' : 'border-grey text-grey' } `}
+                        onClick={e => toggleAltText(e)}>
+                            Alt
+                    </button>           
                 </div>
+            );
+        } 
+        return (
+            <div 
+                className={`border border-transparent ${isActive ? 'shadow-[0_0_0_2px_#30cf43]' : 'hover:shadow-[0_0_0_1px_#30cf43]'}`}
+                onClick={toggleActive}>
+                <MediaPlaceholder desc="Click to select an image" Icon={ImgPlaceholderIcon} />        
+            </div>
+        );
+    }
+
+    function MediaPlaceholder({desc, Icon, ...props}) {
+        return (
+            <div className="relative">
+                <figure className="cursor-pointer border border-transparent" {...props}>
+                    <div className="h-100 relative flex items-center justify-center border border-grey-100 bg-grey-50 before:pb-[62.5%]">
+                        <button className="group flex flex-col items-center justify-center p-20">
+                            <Icon className="h-32 w-32 opacity-80 transition-all ease-linear group-hover:scale-105 group-hover:opacity-100" />
+                            <p className="mt-4 text-sm font-normal text-grey-700 group-hover:text-grey-800">{desc}</p>
+                        </button>
+                    </div>
+                </figure>
                 <form>
                     <input
                         type='file'
@@ -296,29 +339,14 @@ const DesignSandbox = () => {
                         hidden={true}
                     />
                 </form>
-                <CaptionEditor placeholder="Type caption for image (optional)" />
-                <button className="absolute bottom-0 right-0 m-3 cursor-pointer rounded border border-grey px-1 text-sm font-normal leading-6 text-grey">Alt</button>            
             </div>
-        );
-    }
-
-    function MediaPlaceholder({desc, Icon, ...props}) {
-        return (
-            <figure className="cursor-pointer border border-transparent" {...props}>
-                <div className="h-100 relative flex items-center justify-center border border-grey-100 bg-grey-50 before:pb-[62.5%]">
-                    <button className="group flex flex-col items-center justify-center p-20">
-                        <Icon className="h-32 w-32 opacity-80 transition-all ease-linear group-hover:scale-105 group-hover:opacity-100" />
-                        <p className="mt-4 text-sm font-normal text-grey-700 group-hover:text-grey-800">{desc}</p>
-                    </button>
-                </div>
-            </figure>
         );
     }
 
     function CaptionEditor({placeholder}) {
         return (
             <input 
-                className="not-kg-prose w-full p-2 text-center font-sans text-sm font-normal text-grey-900"
+                className="not-kg-prose w-full p-2 text-center font-sans text-sm font-normal tracking-wide text-grey-900"
                 placeholder={placeholder} 
             />
         );
@@ -330,17 +358,7 @@ const DesignSandbox = () => {
     function GalleryCard() {
         return (
             <div className="border-2 border-green">
-                <div className='relative'>
-                    <MediaPlaceholder desc="Click to select up to 9 images" Icon={GalleryPlaceholderIcon} />
-                </div>
-                <form>
-                    <input
-                        type='file'
-                        accept='image/*'
-                        name="image"
-                        hidden={true}
-                    />
-                </form>
+                <MediaPlaceholder desc="Click to select up to 9 images" Icon={GalleryPlaceholderIcon} />
                 <CaptionEditor placeholder="Type caption for gallery (optional)" />
             </div>
         );
